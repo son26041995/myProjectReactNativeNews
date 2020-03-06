@@ -1,5 +1,7 @@
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
+import { HeaderBackButton } from 'react-navigation-stack';
+
 
 import { WebView } from 'react-native-webview';
 
@@ -20,6 +22,7 @@ export default function Article(props) {
 Article.navigationOptions = ({navigation}) => {
     return {
         title: `${navigation.getParam('title')}`,
-        headerRight: null
+        headerRight: null,
+        headerLeft: <HeaderBackButton onPress={() => navigation.goBack(null)} />,
     }
 };

@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {ActivityIndicator, ScrollView, View, Text} from 'react-native';
+import {ActivityIndicator, ScrollView, View, Text, Button, RefreshControl} from 'react-native';
 import {useDispatch, useSelector} from 'react-redux'
 
 import * as api from "../../api";
@@ -8,6 +8,8 @@ import Article from "../../utils";
 
 import Panel from '../../components/Panel'
 import PanelItem from '../../components/PanelItem'
+import { DrawerNavigator } from 'react-navigation'
+import { StackNavigator } from 'react-navigation'
 
 export default function DashBoard(props) {
     const dispatch = useDispatch();
@@ -16,7 +18,9 @@ export default function DashBoard(props) {
     //1 - DECLARE VARIABLES
     const [error, setError] = useState(null);
     const [isFetching, setIsFetching] = useState(true);
-
+    const [count, setCount] = useState(0);
+    const [idx, setIdx] = useState(0);
+    const [refreshing, setRefreshing] = useState(false);
     //Access Redux Store State
     const newsReducer = useSelector(({newsReducer}) => newsReducer);
     const {business, entertainment, general, health, science, sports, technology} = newsReducer;
@@ -25,6 +29,7 @@ export default function DashBoard(props) {
 
     //2 - MAIN CODE BEGINS HERE
     useEffect(() => {
+      console.log('aaaaaaaa')
         getData();
     }, []);
 
@@ -36,7 +41,6 @@ export default function DashBoard(props) {
 
         try {
             let data = await api.getHeadlines();
-            console.log('xxxxxxxxx', data)
             dispatch(addHeadlines(data))
         } catch (error) {
             setError(error);
@@ -54,6 +58,24 @@ export default function DashBoard(props) {
             return <PanelItem {...article} size={size} horizontal={horizontal} grid={grid} wrapper={wrapper}/>
         };
     };
+
+    const setCount1 = () => {
+      setCount(count + 1)
+      setIdx(idx + 1)
+    }
+
+    const _onRefresh = async () => {
+      setRefreshing(true)
+
+      try {
+        await getData()
+      } catch (error) {
+          setRefreshing(false)
+      } finally {
+        console.log('aaaaaaaaaa')
+          setRefreshing(false)
+      }
+    }
 
     //==================================================================================================
 
@@ -84,11 +106,23 @@ export default function DashBoard(props) {
     let renderSportItem = renderItem('large');
     let renderTechItem = renderItem('large', false, true);
     return (
-        <ScrollView style={{backgroundColor: "#fff"}}>
+
+        <ScrollView style={{backgroundColor: "#fff"}} refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => _onRefresh()}
+            />
+          }>
             <Panel title={"Business"}
                    data={business.articles.slice(0, 10)}
                    renderItem={renderDefaultItem}
                    onCTAPress={() => onCTAPress("Business")}/>
+                   
+                    <Text>You clicked {count} times, idx {idx}</Text>
+                    <Button
+                      title="Click me"
+                      onPress={() => setCount1()}
+                    />
 
             <Panel title={"Entertainment"}
                    data={entertainment.articles.slice(0, 10)}
